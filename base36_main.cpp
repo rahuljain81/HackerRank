@@ -51,14 +51,14 @@ int main() {
 		{
 			l1 = getRandomString(A);
 			l2 = getRandomString(B);
-			//multiply(result, A, B);
 			multiply(result, "4ABCD", "EFG"); //stringA * string B = 1PUM48WS
+			//multiply(result, A, B);
 			printf ("result %s\n", result);
-			//ANSWER += strlen(result) + result[rand() % (l1 + l2 - 1)];
+			ANSWER += strlen(result) + result[rand() % (l1 + l2 - 1)];
 
 		}
 
-		//printf("CASE#%d %d\n", tc, ANSWER);
+		printf("CASE#%d %d\n", tc, ANSWER);
 	}
 
 	return 0;
