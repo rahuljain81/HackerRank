@@ -152,236 +152,246 @@ void multiply(char *result, char *A, char *B)
 	B = BB;
 	index = 0; //To keep track of '0' to be added on right
 #if 1
-	for (i=0; i < MAX; i++)
 	{
-		A = AA;
-		count1 = MAXLENGTH * 2 + 1;
-		carry = '0';
-		while (*A)
+		for (i=0; i < MAX; i++)
 		{
-			//Step 1) Multiply X*Y
-			x = i;
-			y = base36_to_decimal(*A);
-			tmp1 = multiple[x][y].val;
+			A = AA;
+			count1 = MAXLENGTH * 2 + 1;
+			carry = '0';
+			while (*A)
+			{
+				//Step 1) Multiply X*Y
+				x = i;
+				y = base36_to_decimal(*A);
+				tmp1 = multiple[x][y].val;
 
-			//Step 2) Add X*Y+Previous Carry
-			x = base36_to_decimal(tmp1);
-			y = base36_to_decimal(carry);
-			tmp2 = add[x][y].val;
+				//Step 2) Add X*Y+Previous Carry
+				x = base36_to_decimal(tmp1);
+				y = base36_to_decimal(carry);
+				tmp2 = add[x][y].val;
 
-			//Save Step 2 output in array
-			out1[--count1] = tmp2;
+				//Save Step 2 output in array
+				out1[--count1] = tmp2;
 
-			//Step 3) new carry with Step 2.
-			carry_current_index = add[x][y].carry;
+				//Step 3) new carry with Step 2.
+				carry_current_index = add[x][y].carry;
 
-			//Step 4) Carry of Step 1.
-			x = i;
-			y = base36_to_decimal(*A);
-			carry = multiple[x][y].carry;
+				//Step 4) Carry of Step 1.
+				x = i;
+				y = base36_to_decimal(*A);
+				carry = multiple[x][y].carry;
 
-			//Final Carry: Sum of Step 3 & Step 4
-			x = base36_to_decimal(carry_current_index);
-			y = base36_to_decimal(carry);
-			carry = add[x][y].val;
+				//Final Carry: Sum of Step 3 & Step 4
+				x = base36_to_decimal(carry_current_index);
+				y = base36_to_decimal(carry);
+				carry = add[x][y].val;
 
-			//Move to next index of A.
-			A++;
-		}
-		//Save carry (if any)
-		if (base36_to_decimal(carry) != 0)
-			out1[--count1] = carry;
-		//EOF
-		out1[MAXLENGTH * 2 + 1] = '\0';
+				//Move to next index of A.
+				A++;
+			}
+			//Save carry (if any)
+			if (base36_to_decimal(carry) != 0)
+				out1[--count1] = carry;
+			//EOF
+			out1[MAXLENGTH * 2 + 1] = '\0';
 #if 0
-		printf ("output ==");
-		for (j=count1; j < MAXLENGTH * 2 + 2; j++)
-			printf ("%c", out1[j]);
-		printf ("\n");
+			printf ("output ==");
+			for (j=count1; j < MAXLENGTH * 2 + 2; j++)
+				printf ("%c", out1[j]);
+			printf ("\n");
 #endif
 
 
-		for (j=0; j < MAXLENGTH * 2 + 2; j++)
-			out[i].output[j] = out1[j];
-		out[i].count = count1;
-	}
+			for (j=0; j < MAXLENGTH * 2 + 2; j++)
+				out[i].output[j] = out1[j];
+			out[i].count = count1;
+		}
 
-	index = 0;
-	while (*B)
-	{		
-		//Reset carry to 0 for next Index
-		carry = '0';
-		count2 = MAXLENGTH * 2;
-		j=0;
+		index = 0;
+		while (*B)
+		{		
+			//Reset carry to 0 for next Index
+			carry = '0';
+			count2 = MAXLENGTH * 2;
+			j=0;
 
-		//As multiplication is done, now we add it to previous multiplication output
-		carry = '0';
+			//As multiplication is done, now we add it to previous multiplication output
+			carry = '0';
 #if 0
-		printf ("output ==");
-		for (i=out[base36_to_decimal(*B)].count; i < MAXLENGTH * 2 + 2; i++)
-			printf ("%c", out[base36_to_decimal(*B)].output[i]);
-		printf ("\n");
+			printf ("output ==");
+			for (i=out[base36_to_decimal(*B)].count; i < MAXLENGTH * 2 + 2; i++)
+				printf ("%c", out[base36_to_decimal(*B)].output[i]);
+			printf ("\n");
 #endif		
 
-		//Skip index count from out2 for addition of Zeros
-		count2 = count2 - index;
-		i = count2;
+			//Skip index count from out2 for addition of Zeros
+			count2 = count2 - index;
+			i = count2;
 
-		for (K = MAXLENGTH * 2; K >= out[base36_to_decimal(*B)].count ; i--, K--)
-		{
-			//Step1) Add out2[i] + out1[i]
-			x = base36_to_decimal(out2[i]);
-			y = base36_to_decimal(out[base36_to_decimal(*B)].output[K]);
-			tmp1 = add[x][y].val;
+			for (K = MAXLENGTH * 2; K >= out[base36_to_decimal(*B)].count ; i--, K--)
+			{
+				//Step1) Add out2[i] + out1[i]
+				x = base36_to_decimal(out2[i]);
+				y = base36_to_decimal(out[base36_to_decimal(*B)].output[K]);
+				tmp1 = add[x][y].val;
 
-			//Step2) Add tmp output with previous carry
-			x = base36_to_decimal(tmp1);
-			y = base36_to_decimal(carry);
-			tmp2 = add[x][y].val;
+				//Step2) Add tmp output with previous carry
+				x = base36_to_decimal(tmp1);
+				y = base36_to_decimal(carry);
+				tmp2 = add[x][y].val;
 
-			//Step 3) new carry with Step 2.
-			carry_current_index = add[x][y].carry;
+				//Step 3) new carry with Step 2.
+				carry_current_index = add[x][y].carry;
 
-			//Step 4) Carry of Step 1.
-			x = base36_to_decimal(out2[i]);
-			y = base36_to_decimal(out[base36_to_decimal(*B)].output[K]);
-			carry = add[x][y].carry;
+				//Step 4) Carry of Step 1.
+				x = base36_to_decimal(out2[i]);
+				y = base36_to_decimal(out[base36_to_decimal(*B)].output[K]);
+				carry = add[x][y].carry;
 
-			//Final Carry: Sum of Step 3 & Step 4
-			x = base36_to_decimal(carry_current_index);
-			y = base36_to_decimal(carry);
-			carry = add[x][y].val;
+				//Final Carry: Sum of Step 3 & Step 4
+				x = base36_to_decimal(carry_current_index);
+				y = base36_to_decimal(carry);
+				carry = add[x][y].val;
 
-			//Save Step 2 output in array
-			out2[count2--] = tmp2;
-			j++;
-		}
-		//Save carry (if any)
-		if (base36_to_decimal(carry) != 0)
-			out2[count2] = carry;
-		else
-			count2++;
-		//EOF
-		out2[MAXLENGTH*2+1] = '\0';
+				//Save Step 2 output in array
+				out2[count2--] = tmp2;
+				j++;
+			}
+			//Save carry (if any)
+			if (base36_to_decimal(carry) != 0)
+				out2[count2] = carry;
+			else
+				count2++;
+			//EOF
+			out2[MAXLENGTH*2+1] = '\0';
 
 #ifdef DEBUG
-		printf ("FINAL OUT==");
-		for (i=count2; i < (MAXLENGTH*2+2); i++)
-			printf ("%c", out2[i]);
-		printf ("\n");
+			printf ("FINAL OUT==");
+			for (i=count2; i < (MAXLENGTH*2+2); i++)
+				printf ("%c", out2[i]);
+			printf ("\n");
 #endif
 
-		B++;
-		index++;
-	}
-	for (i=count2,j = 0; i < (MAXLENGTH*2+2); i++, j++)
-		result[j] = out2[i];
-	result[j] = '\0';	
+			B++;
+			index++;
+		}
+		for (i=count2,j = 0; i < (MAXLENGTH*2+2); i++, j++)
+			result[j] = out2[i];
+		result[j] = '\0';	
 
+	}
 #else
+	{
 
-	while (*B)
-	{		
-		//Reset carry to 0 for next Index
-		carry = '0';
-		count2 = count1 = MAXLENGTH * 2;
+		while (*B)
+		{		
+			//Reset carry to 0 for next Index
+			carry = '0';
+			count2 = count1 = MAXLENGTH * 2;
 
-		// Shift to left Ouput Array
-		for (j = 0; j < index; j++)
-			out1[count1--] = '0';
+			// Shift to left Ouput Array
+			for (j = 0; j < index; j++)
+				out1[count1--] = '0';
 
-		while (*A)
-		{
-			//Step 1) Multiply X*Y
-			x = base36_to_decimal(*B);
-			y = base36_to_decimal(*A);
-			tmp1 = multiple[x][y].val;
+			while (*A)
+			{
+				//Step 1) Multiply X*Y
+				x = base36_to_decimal(*B);
+				y = base36_to_decimal(*A);
+				tmp1 = multiple[x][y].val;
 
-			//Step 2) Add X*Y+Previous Carry
-			x = base36_to_decimal(tmp1);
-			y = base36_to_decimal(carry);
-			tmp2 = add[x][y].val;
+				//Step 2) Add X*Y+Previous Carry
+				x = base36_to_decimal(tmp1);
+				y = base36_to_decimal(carry);
+				tmp2 = add[x][y].val;
 
-			//Save Step 2 output in array
-			out1[count1--] = tmp2;
+				//Save Step 2 output in array
+				out1[count1--] = tmp2;
 
-			//Step 3) new carry with Step 2.
-			carry_current_index = add[x][y].carry;
+				//Step 3) new carry with Step 2.
+				carry_current_index = add[x][y].carry;
 
-			//Step 4) Carry of Step 1.
-			x = base36_to_decimal(*B);
-			y = base36_to_decimal(*A);
-			carry = multiple[x][y].carry;
+				//Step 4) Carry of Step 1.
+				x = base36_to_decimal(*B);
+				y = base36_to_decimal(*A);
+				carry = multiple[x][y].carry;
 
-			//Final Carry: Sum of Step 3 & Step 4
-			x = base36_to_decimal(carry_current_index);
-			y = base36_to_decimal(carry);
-			carry = add[x][y].val;
+				//Final Carry: Sum of Step 3 & Step 4
+				x = base36_to_decimal(carry_current_index);
+				y = base36_to_decimal(carry);
+				carry = add[x][y].val;
 
-			//Move to next index of A.
-			A++;
-		}
-		//Save carry (if any)
-		if (base36_to_decimal(carry) != 0)
-			out1[count1] = carry;
-		//EOF
-		out1[MAXLENGTH*2+1] = '\0';
-
-#ifdef DEBUG
-		for (i=count1; i < (MAXLENGTH*2+2); i++)
-			printf ("%c", out1[i]);
-		printf ("\n");
-#endif
-
-		//As multiplication is done, now we add it to previous multiplication output
-		carry = '0';
-		for (i = MAXLENGTH * 2; i >= 0; i--)
-		{
-			//Step1) Add out2[i] + out1[i]
-			x = base36_to_decimal(out2[i]);
-			y = base36_to_decimal(out1[i]);
-			tmp1 = add[x][y].val;
-
-			//Step2) Add tmp output with previous carry
-			x = base36_to_decimal(tmp1);
-			y = base36_to_decimal(carry);
-			tmp2 = add[x][y].val;
-
-			//Step 3) new carry with Step 2.
-			carry_current_index = add[x][y].carry;
-
-			//Step 4) Carry of Step 1.
-			x = base36_to_decimal(out2[i]);
-			y = base36_to_decimal(out1[i]);
-			carry = add[x][y].carry;
-
-			//Final Carry: Sum of Step 3 & Step 4
-			x = base36_to_decimal(carry_current_index);
-			y = base36_to_decimal(carry);
-			carry = add[x][y].val;
-
-			//Save Step 2 output in array
-			out2[count2--] = tmp2;
-		}
-		//Save carry (if any)
-		if (base36_to_decimal(carry) != 0)
-			out2[count2--] = carry;
-		//EOF
-		out2[MAXLENGTH*2+1] = '\0';
+				//Move to next index of A.
+				A++;
+			}
+			//Save carry (if any)
+			if (base36_to_decimal(carry) != 0)
+				out1[count1] = carry;
+			else
+				count1++;
+			//EOF
+			out1[MAXLENGTH*2+1] = '\0';
 
 #ifdef DEBUG
-		printf ("==\n");
-		for (i=count1; i < (MAXLENGTH*2+2); i++)
-			printf ("%c", out2[i]);
-		printf ("\n");
+			for (i=count1; i < (MAXLENGTH*2+2); i++)
+				printf ("%c", out1[i]);
+			printf ("\n");
 #endif
 
-		A = AA;
-		B++;
-		index++;
+			//As multiplication is done, now we add it to previous multiplication output
+			carry = '0';
+			for (i = MAXLENGTH * 2; i >= count1; i--)
+			{
+				//Step1) Add out2[i] + out1[i]
+				x = base36_to_decimal(out2[i]);
+				y = base36_to_decimal(out1[i]);
+				tmp1 = add[x][y].val;
+
+				//Step2) Add tmp output with previous carry
+				x = base36_to_decimal(tmp1);
+				y = base36_to_decimal(carry);
+				tmp2 = add[x][y].val;
+
+				//Step 3) new carry with Step 2.
+				carry_current_index = add[x][y].carry;
+
+				//Step 4) Carry of Step 1.
+				x = base36_to_decimal(out2[i]);
+				y = base36_to_decimal(out1[i]);
+				carry = add[x][y].carry;
+
+				//Final Carry: Sum of Step 3 & Step 4
+				x = base36_to_decimal(carry_current_index);
+				y = base36_to_decimal(carry);
+				carry = add[x][y].val;
+
+				//Save Step 2 output in array
+				out2[count2--] = tmp2;
+			}
+			//Save carry (if any)
+			if (base36_to_decimal(carry) != 0)
+			{
+				out2[count2] = carry;
+			}
+			else
+				count2++;
+			//EOF
+			out2[MAXLENGTH*2+1] = '\0';
+
+#ifdef DEBUG
+			printf ("==\n");
+			for (i=count2; i < (MAXLENGTH*2+2); i++)
+				printf ("%c", out2[i]);
+			printf ("\n");
+#endif
+
+			A = AA;
+			B++;
+			index++;
+		}
+		for (i=count2,j = 0; i < (MAXLENGTH*2+2); i++, j++)
+			result[j] = out2[i];
+		result[j] = '\0';	
 	}
-	for (i=count1,j = 0; i < (MAXLENGTH*2+2); i++, j++)
-		result[j] = out2[i];
-	result[j] = '\0';	
 #endif
 }
