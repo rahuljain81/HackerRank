@@ -43,17 +43,18 @@ int main() {
 	B = (char *)malloc(sizeof(char)* MAXLENGTH + 1);
 	srand(3);
 
-	//for (tc = 1; tc<21; tc++) 
+	for (tc = 1; tc<21; tc++) 
 	{
 
 		ANSWER = 0;
-		//for (i = 0; i<10000; i++) 
+		for (i = 0; i<10000; i++) 
 		{
 			l1 = getRandomString(A);
 			l2 = getRandomString(B);
-			multiply(result, "4ABCD", "EFG"); //stringA * string B = 1PUM48WS
-			//multiply(result, A, B);
-			printf ("result %s\n", result);
+			//multiply(result, "123", "210"); //stringA * string B = 1PUM48WS
+			//multiply(result, "4ABCD", "EFG"); //stringA * string B = 1PUM48WS
+			multiply(result, A, B);
+			//printf ("result %s\n", result);
 			ANSWER += strlen(result) + result[rand() % (l1 + l2 - 1)];
 
 		}
