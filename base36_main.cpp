@@ -17,6 +17,7 @@ char getChar(int a) {
 
 
 void multiply(char *result, char *A, char *B);
+void multiply1(char *result, char *A, char *B);
 
 
 int getRandomString(char *A) {
@@ -44,6 +45,7 @@ int main() {
 	B = (char *)malloc(sizeof(char)* MAXLENGTH + 1);
 	srand(3);
 
+	tc = 1;
 	for (tc = 1; tc<21; tc++) 
 	{
 
@@ -54,10 +56,12 @@ int main() {
 			l2 = getRandomString(B);
 			//multiply(result, "123", "210"); //stringA * string B = 1PUM48WS
 			//multiply(result, "4ABCD", "1FG", 0); //stringA * string B = 1PUM48WS
-			//multiply(result1, "4ABCD", "1FG", 1); //stringA * string B = 1PUM48WS
+			//multiply(result1, "4ABCD", "EFG"); //stringA * string B = 1PUM48WS
+			//multiply(result1, "1234", "210"); //stringA * string B = 1PUM48WS
 			//multiply (result, "H3BNPVYBP9OI2GV","2EQJ4FQBTE5LMEH", 0); //156JBXYQ8RCYTH86DLV8LT32Z8VO0N
 			//multiply (result1, "H3BNPVYBP9OI2GV","2EQJ4FQBTE5LMEH", 1); //156JBXYQ8RCYTH86DLV8LT32Z8VO0N
 			multiply(result, A, B);
+	//		multiply1(result1, A, B);
 			//printf ("result %s\n", result);
 			ANSWER += strlen(result) + result[rand() % (l1 + l2 - 1)];
 #if 0
@@ -76,6 +80,8 @@ int main() {
 						(int)strlen(result1));
 				printf ("result [%s]\nresult1[%s]\n", result, result1);
 				printf ("A[%s] B[%s]\n", A, B);
+				tc = 22;
+				break;
 			}
 #endif
 		}
