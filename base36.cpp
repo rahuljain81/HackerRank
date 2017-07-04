@@ -5,7 +5,7 @@
 
 #define MAX 36
 
-int multiple[MAXCHAR*MAXCHAR];
+static int multiple[MAXCHAR*MAXCHAR];
 
 int once = 0;
 
@@ -13,7 +13,7 @@ int once = 0;
 #define base36_to_decimal(a) (((a-'0')<=9)?(a-'0'):(a-'A'+10))
 void init()
 {
-	int i, j, result, questionent, remainder;
+	register int i, j;
 
 	for (i = 0; i < MAXCHAR; i++)
 	{
@@ -34,10 +34,10 @@ void multiply(char *result, char *A, char *B)
 {
 	char out1[MAXLENGTH * 2 + 2];
 	char AA[MAXLENGTH + 1], BB[MAXLENGTH + 1];
-	int carry, tmp1, tmp2;
-	int maxlength, acount, bcount;
+	register int carry, tmp1, tmp2;
+	register int maxlength, acount, bcount;
 
-	int count1 = 0, i, j, K, x, y, index, carry_current_index;
+	register int count1 = 0, i, j, K, x, y, index, carry_current_index;
 
 	if (!once)
 	{
