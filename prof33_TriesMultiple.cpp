@@ -6,7 +6,6 @@
 #define MAX_COUNT 50001
 
 #define STRING_TRIE 27 //26 + @
-#define NUM_TRIE 10
 #define EMAILCNT 5
 
 void sprintf(char *dst, char *src)
@@ -69,7 +68,7 @@ typedef struct trie_node
 
 typedef struct ntrie_node
 {
-	struct ntrie_node* nhash[NUM_TRIE];
+	struct ntrie_node* nhash[MAX_NUM];
 	dll_node *dll;
 }num_trie;
 
