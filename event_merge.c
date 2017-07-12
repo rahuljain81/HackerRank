@@ -39,6 +39,7 @@ label:
 		{
 			for (j = i + 1; j < size; j++)
 			{
+				//if a>d or b<c the lines don't overlap. provided a<b and c<d.
 				if(!(e[j].start > e[i].end || e[i].start > e[j].end))
 				{
 					//Merge
