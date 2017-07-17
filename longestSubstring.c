@@ -40,11 +40,11 @@ int main()
 			for (j=1; j <= count; j++)
 			{
 				if ((len - hash[i][j]) < max)
-					continue;
+					break;
 				for (k=j+1; k <= count; k++)
 				{
 					if ((len - hash[i][k]) < max)
-						continue;
+						break;
 
 					first = hash[i][j];
 					second = hash[i][k]; 
