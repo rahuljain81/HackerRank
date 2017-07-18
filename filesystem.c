@@ -52,9 +52,8 @@ int find(int id)
 	return i;
 }
 
-int calculate(int id)
+int calculate(node *n)
 {
-	node* n = &list[find(id)];
 	int nodesize = 0;
 
 	if (n->file_or_dir == D_FILE)
@@ -65,7 +64,7 @@ int calculate(int id)
 		node* child = n->cid[i];
 
 		if (child->file_or_dir == D_DIR && child->cid_count)
-			nodesize += calculate(child->id);
+			nodesize += calculate(child);
 		else
 			nodesize += child->size;
 	}
@@ -101,7 +100,7 @@ int add(int id, int pid, int fileSize)
 
 	dump(10000, 0);
 
-	return calculate(pid);
+	return calculate(parent);
 }
 
 int move(int id, int pid)
@@ -132,14 +131,13 @@ int move(int id, int pid)
 	child->pid = new_parent;
 
 	dump(10000, 0);
-	return calculate(pid);
+	return calculate(new_parent);
 }
 
 int infected;
-void rec_infect(int id)
+void rec_infect(node *n)
 {
 	//printf (" Rec Infect %d \n", id);
-	node* n = &list[find(id)];
 
 	if (n->file_or_dir == D_FILE)
 	{
@@ -157,7 +155,7 @@ void rec_infect(int id)
 			child->is_infected = 1;
 
 			if (child->file_or_dir == D_DIR)
-				rec_infect(child->id);
+				rec_infect(child);
 			else
 			{
 				child->size += size / filecount;
@@ -170,21 +168,22 @@ void rec_infect(int id)
 
 int infect(int id)
 {
+	node* n = &list[find(id)];
 	if (filecount)
 	{
 		//	printf (" Infect %d size %d\n", id, size/filecount);
 		infected = 0;
-		rec_infect(id);
+		rec_infect(n);
 		size += infected;
 		dump(10000, 0);
 	}
-	return calculate(id);
+	return calculate(n);
 }
 
-void rec_recover(int id)
+void rec_recover(node *n)
 {
 	//printf ("Rec Recover %d \n", id);
-	node* n = &list[find(id)];
+	//node* n = &list[find(id)];
 
 	if (n->file_or_dir == D_FILE)
 	{
@@ -202,7 +201,7 @@ void rec_recover(int id)
 			child->is_infected = 0;
 
 			if (child->file_or_dir == D_DIR)
-				rec_recover(child->id);
+				rec_recover(child);
 			else
 			{
 				infected += child->size - child->orig_size;
@@ -216,17 +215,17 @@ void rec_recover(int id)
 int recover(int id)
 {
 	//	printf (" Recover %d \n", id);
+	node* n = &list[find(id)];
 	infected = 0;
-	rec_recover(id);
+	rec_recover(n);
 	dump(10000, 0);
 	size -= infected;
-	return calculate(id);
+	return calculate(n);
 }
 
-void rec_remove(int id)
+void rec_remove(node *n)
 {
 	//	printf ("Rec Remove %d \n", id);
-	node* n = &list[find(id)];
 	n->id = -1;
 
 	if (n->file_or_dir == D_FILE)
@@ -245,7 +244,7 @@ void rec_remove(int id)
 
 			if (child->file_or_dir == D_DIR)
 			{
-				rec_remove(child->id);
+				rec_remove(child);
 			}
 			else
 			{
@@ -267,7 +266,7 @@ int fremove(int id)
 	node* child = &list[find(id)];
 	node* parent = child->pid;
 
-	ret = calculate(id);
+	ret = calculate(child);
 
 	//remove from old parent list
 	for (i = 0; i < parent->cid_count; i++)
@@ -287,7 +286,7 @@ int fremove(int id)
 	else
 	{
 		infected = 0;
-		rec_remove(id);
+		rec_remove(child);
 		size -= infected;
 	}
 
