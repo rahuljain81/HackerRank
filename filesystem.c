@@ -1,21 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
 
-#define MAX_CHILD 500
-#define MAX_NODES 100000
+#include <malloc.h>
+#define LIMIT 10000000
+#define MAX_CHILD 200
+#define MAX_NODES 10000
 #define D_DIR 1
 #define D_FILE 0
-
-
-#define DEBUG 
-typedef enum
-{
-	CMD_ADD = 1,
-	CMD_MOVE,
-	CMD_INFECT,
-	CMD_RECOVER,
-	CMD_REMOVE
-} COMMAND;
 
 
 typedef struct node
@@ -35,7 +24,9 @@ int count;
 int filecount;
 int size;
 
-node list[MAX_NODES];
+//node list[MAX_NODES];
+node *list = NULL;
+int* hash = NULL;
 
 void init(void)
 {
@@ -43,26 +34,35 @@ void init(void)
 	size = 0;
 	filecount = 0;
 
+	if (hash == NULL)
+		hash = (int*)malloc(LIMIT * sizeof(int));
+	if (list == NULL)
+		list = (node*)malloc(MAX_NODES * sizeof(node));
+
 	list[count].id = 10000;
 	list[count].cid_count = 0;
 	list[count].file_or_dir = D_DIR;
 	list[count].is_infected = 0;
 	list[count].pid = -1;
 
+	hash[10000] = 0;
+
 	count++;
 }
-	
-int find (int id)
+
+int find(int id)
 {
-	int i=0;
+	//int i = 0;
 
-	while (list[i].id != id && i < count)
-		i++;
+	//while (list[i].id != id && i < count)
+	//	i++;
 
-	return i;
+	//return i;
+
+	return hash[id];
 }
 
-int calculate (int id)
+int calculate(int id)
 {
 	node n = list[find(id)];
 	int nodesize = 0;
@@ -70,39 +70,23 @@ int calculate (int id)
 	if (n.file_or_dir == D_FILE)
 		nodesize = n.size;
 
-	for (int i=0; i < n.cid_count; i++)
+	for (int i = 0; i < n.cid_count; i++)
 	{
-		node child = list[find (n.cid[i])];
+		node child = list[find(n.cid[i])];
 
 		if (child.file_or_dir == D_DIR && child.cid_count)
-			nodesize += calculate (child.id);
+			nodesize += calculate(child.id);
 		else
 			nodesize += child.size;
 	}
-	
+
 	return nodesize;
 }
 
 void dump(int id, int depth)
 {
-	return ;//INTENTIONAL
-	int i;
-	node n = list[find (id)];
-	printf ("pid %d, count %d = \t ", n.id, n.cid_count);
-	for (i=0; i < n.cid_count; i++)
-	{
-		node child = list[find (n.cid[i])];
-		printf ("(%d, %d)\t", child.id, child.size);
-	}
-	printf ("\n");
-	for (i=0; i < n.cid_count; i++)
-	{
-		node child = list[find (n.cid[i])];
-		if (child.file_or_dir == D_DIR && child.cid_count)
-			dump (child.id, depth+1);
-	}
+	return;//INTENTIONAL
 
-	printf ("\n");
 }
 
 
@@ -110,9 +94,10 @@ void dump(int id, int depth)
 int add(int id, int pid, int fileSize)
 {
 
-//	printf (" ADD pid %d id %d size %d\n", pid, id, fileSize);
+	//	printf (" ADD pid %d id %d size %d\n", pid, id, fileSize);
 	node* parent = &list[find(pid)];
 	node* child = &list[count++];
+	hash[id] = count - 1;
 	size += fileSize;
 
 	parent->cid[parent->cid_count++] = id;
@@ -130,7 +115,7 @@ int add(int id, int pid, int fileSize)
 
 	dump(10000, 0);
 
-	return calculate (pid);
+	return calculate(pid);
 }
 
 int move(int id, int pid)
@@ -143,13 +128,13 @@ int move(int id, int pid)
 	node* old_parent = &list[find(child->pid)];
 
 	//remove from old parent list
-	for (i=0; i < old_parent->cid_count; i++)
+	for (i = 0; i < old_parent->cid_count; i++)
 	{
 		if (old_parent->cid[i] == id)
 			break;
 	}
 
-	if (i+1 != old_parent->cid_count) //not last child
+	if (i + 1 != old_parent->cid_count) //not last child
 		old_parent->cid[i] = old_parent->cid[old_parent->cid_count - 1];
 	old_parent->cid_count--;
 
@@ -162,7 +147,7 @@ int move(int id, int pid)
 	child->pid = pid;
 
 	dump(10000, 0);
-	return calculate (pid);
+	return calculate(pid);
 }
 int infected;
 void rec_infect(int id)
@@ -173,27 +158,27 @@ void rec_infect(int id)
 	if (n->file_or_dir == D_FILE)
 	{
 		n->is_infected = 1;
-		n->size += size/filecount;
-		infected += size/filecount;
+		n->size += size / filecount;
+		infected += size / filecount;
 		return;
 	}
 	else
 	{
-		for (int i=0; i < n->cid_count; i++)
+		for (int i = 0; i < n->cid_count; i++)
 		{
-			node* child = &list[find (n->cid[i])];
+			node* child = &list[find(n->cid[i])];
 
 			child->is_infected = 1;
 
 			if (child->file_or_dir == D_DIR)
-				rec_infect (child->id);
+				rec_infect(child->id);
 			else
 			{
-				child->size += size/filecount;
-				infected += size/filecount;
+				child->size += size / filecount;
+				infected += size / filecount;
 			}
 		}
-		return; 
+		return;
 	}
 }
 
@@ -201,13 +186,13 @@ int infect(int id)
 {
 	if (filecount)
 	{
-	//	printf (" Infect %d size %d\n", id, size/filecount);
+		//	printf (" Infect %d size %d\n", id, size/filecount);
 		infected = 0;
 		rec_infect(id);
 		size += infected;
 		dump(10000, 0);
 	}
-	return calculate (id); 
+	return calculate(id);
 }
 
 void rec_recover(int id)
@@ -224,37 +209,37 @@ void rec_recover(int id)
 	}
 	else
 	{
-		for (int i=0; i < n->cid_count; i++)
+		for (int i = 0; i < n->cid_count; i++)
 		{
-			node* child = &list[find (n->cid[i])];
+			node* child = &list[find(n->cid[i])];
 
 			child->is_infected = 0;
 
 			if (child->file_or_dir == D_DIR)
-				rec_recover (child->id);
+				rec_recover(child->id);
 			else
 			{
 				infected += child->size - child->orig_size;
 				child->size = child->orig_size;
 			}
 		}
-		return; 
+		return;
 	}
 }
 
 int recover(int id)
 {
-//	printf (" Recover %d \n", id);
+	//	printf (" Recover %d \n", id);
 	infected = 0;
-	rec_recover (id);
-	dump (10000, 0);
+	rec_recover(id);
+	dump(10000, 0);
 	size -= infected;
-	return calculate (id);
+	return calculate(id);
 }
 
 void rec_remove(int id)
 {
-//	printf ("Rec Remove %d \n", id);
+	//	printf ("Rec Remove %d \n", id);
 	node* n = &list[find(id)];
 	n->id = -1;
 
@@ -266,15 +251,15 @@ void rec_remove(int id)
 	}
 	else
 	{
-		for (int i=0; i < n->cid_count; i++)
+		for (int i = 0; i < n->cid_count; i++)
 		{
-			node* child = &list[find (n->cid[i])];
+			node* child = &list[find(n->cid[i])];
 
 			child->is_infected = 0;
 
 			if (child->file_or_dir == D_DIR)
 			{
-				rec_remove (child->id);
+				rec_remove(child->id);
 			}
 			else
 			{
@@ -284,28 +269,28 @@ void rec_remove(int id)
 			child->id = -1;
 		}
 		n->cid_count = 0;
-		return; 
+		return;
 	}
 }
 
 
-int fremove(int id)
+int remove(int id)
 {
-//	printf (" Remove %d \n", id);
+	//	printf (" Remove %d \n", id);
 	int i, ret;
 	node* child = &list[find(id)];
 	node* parent = &list[find(child->pid)];
 
-	ret = calculate (id);
+	ret = calculate(id);
 
 	//remove from old parent list
-	for (i=0; i < parent->cid_count; i++)
+	for (i = 0; i < parent->cid_count; i++)
 	{
 		if (parent->cid[i] == id)
 			break;
 	}
 
-	if (i+1 != parent->cid_count) //not last child
+	if (i + 1 != parent->cid_count) //not last child
 		parent->cid[i] = parent->cid[parent->cid_count - 1];
 	parent->cid_count--;
 	if (child->file_or_dir == D_FILE)
@@ -316,7 +301,7 @@ int fremove(int id)
 	else
 	{
 		infected = 0;
-		rec_remove (id);
+		rec_remove(id);
 		size -= infected;
 	}
 
@@ -324,67 +309,4 @@ int fremove(int id)
 
 	dump(10000, 0);
 	return ret;
-}
-
-int run() {
-	int N, score = 0; scanf("%d", &N);
-	for (register int i = 0; i < N; ++i) 
-	{
-		int cmd, ret, id, pid, size; 
-		scanf("%d", &cmd);
-		switch (cmd) 
-		{
-		case CMD_ADD:
-			scanf("%d%d%d", &id, &pid, &size);
-			ret = add(id, pid, size);
-			break;
-		case CMD_MOVE:
-			scanf("%d%d", &id, &pid);
-			ret = move(id, pid);
-			break;
-		case CMD_INFECT:
-			scanf("%d", &id);
-			ret = infect(id);
-			break;
-		case CMD_RECOVER:
-			scanf("%d", &id);
-			ret = recover(id);
-			break;
-		case CMD_REMOVE:
-			scanf("%d", &id);
-			ret = fremove(id);
-			break;
-		}
-		int checksum; 
-		scanf("%d", &checksum);
-		if (ret == checksum) 
-			++score;
-		else
-		{
-			printf ("FAIL expected %d got %d\n", checksum, ret);
-			exit (0);
-			return 0;
-		}
-	}
-	return score;
-}
-
-int main()
-{
-	//setbuf(stdout, NULL);
-	//freopen("sample_input.txt", "r", stdin);
-	//freopen("sample_output.txt", "w", stdout);
-
-	int T;
-	scanf("%d", &T);
-	int TotalScore = 0;
-	for (int tc = 1; tc <= T; tc++)
-	{
-		init();
-		int score = run();
-		printf("#%d %d\n", tc, score);
-		TotalScore += score;
-	}
-	printf("TotalScore = %d\n", TotalScore);
-	return 0;
 }
