@@ -146,6 +146,7 @@ Thus, in the user code part, input/output are not separately processed.
 
 
 #include <stdio.h>
+#include <stdlib.h>
 typedef enum
 {
 	CMD_ADD = 1,
@@ -197,7 +198,13 @@ int run() {
 			break;
 		}
 		int checksum; scanf("%d", &checksum);
-		if (ret == checksum) ++score;
+		if (ret == checksum) 
+			++score;
+		else
+		{
+			printf ("checksum %d ret %d\n", checksum, ret);
+			exit (0);
+		}
 	}
 	return score;
 }

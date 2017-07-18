@@ -38,6 +38,7 @@ void init(void)
 	list[count].file_or_dir = D_DIR;
 	list[count].is_infected = 0;
 	list[count].pid = NULL;
+	list[count].size = 0;
 
 	count++;
 }
@@ -52,29 +53,20 @@ int find(int id)
 	return i;
 }
 
-int calculate(node *n)
-{
-	int nodesize = 0;
-
-	if (n->file_or_dir == D_FILE)
-		nodesize = n->size;
-
-	for (int i = 0; i < n->cid_count; i++)
-	{
-		node* child = n->cid[i];
-
-		if (child->file_or_dir == D_DIR && child->cid_count)
-			nodesize += calculate(child);
-		else
-			nodesize += child->size;
-	}
-
-	return nodesize;
-}
-
 void dump(int id, int depth)
 {
 	return;//INTENTIONAL
+}
+
+
+void update_parent (node *n, int size)
+{
+	node* parent = n->pid;
+	while (parent)
+	{
+		parent->size += size;
+		parent = parent->pid;
+	}
 }
 
 int add(int id, int pid, int fileSize)
@@ -98,9 +90,11 @@ int add(int id, int pid, int fileSize)
 		filecount++;
 	child->is_infected = 0;
 
+	update_parent (child, fileSize);
+
 	dump(10000, 0);
 
-	return calculate(parent);
+	return parent->size;
 }
 
 int move(int id, int pid)
@@ -111,6 +105,8 @@ int move(int id, int pid)
 	node* child = &list[find(id)];
 	node* new_parent = &list[find(pid)];
 	node* old_parent = child->pid;
+
+	update_parent (child, child->size * -1);
 
 	//remove from old parent list
 	for (i = 0; i < old_parent->cid_count; i++)
@@ -129,9 +125,10 @@ int move(int id, int pid)
 
 	//update parent
 	child->pid = new_parent;
+	update_parent (child, child->size);
 
 	dump(10000, 0);
-	return calculate(new_parent);
+	return new_parent->size;
 }
 
 int infected;
@@ -144,6 +141,8 @@ void rec_infect(node *n)
 		n->is_infected = 1;
 		n->size += size / filecount;
 		infected += size / filecount;
+		update_parent (n, size/filecount);
+
 		return;
 	}
 	else
@@ -160,6 +159,7 @@ void rec_infect(node *n)
 			{
 				child->size += size / filecount;
 				infected += size / filecount;
+				update_parent (child, size/filecount);
 			}
 		}
 		return;
@@ -177,7 +177,7 @@ int infect(int id)
 		size += infected;
 		dump(10000, 0);
 	}
-	return calculate(n);
+	return n->size;
 }
 
 void rec_recover(node *n)
@@ -189,6 +189,7 @@ void rec_recover(node *n)
 	{
 		n->is_infected = 0;
 		infected += n->size - n->orig_size;
+		update_parent (n, (n->size - n->orig_size) * -1);
 		n->size = n->orig_size;
 		return;
 	}
@@ -205,6 +206,7 @@ void rec_recover(node *n)
 			else
 			{
 				infected += child->size - child->orig_size;
+				update_parent (child, (child->size - child->orig_size) * -1);
 				child->size = child->orig_size;
 			}
 		}
@@ -220,7 +222,7 @@ int recover(int id)
 	rec_recover(n);
 	dump(10000, 0);
 	size -= infected;
-	return calculate(n);
+	return n->size;
 }
 
 void rec_remove(node *n)
@@ -231,6 +233,7 @@ void rec_remove(node *n)
 	if (n->file_or_dir == D_FILE)
 	{
 		infected += n->size;
+		update_parent (n, n->size  * -1);
 		filecount--;
 		return;
 	}
@@ -249,6 +252,7 @@ void rec_remove(node *n)
 			else
 			{
 				infected += child->size;
+				update_parent (child, child->size  * -1);
 				filecount--;
 			}
 			child->id = -1;
@@ -266,7 +270,7 @@ int fremove(int id)
 	node* child = &list[find(id)];
 	node* parent = child->pid;
 
-	ret = calculate(child);
+	ret = child->size;
 
 	//remove from old parent list
 	for (i = 0; i < parent->cid_count; i++)
@@ -278,10 +282,12 @@ int fremove(int id)
 	if (i + 1 != parent->cid_count) //not last child
 		parent->cid[i] = parent->cid[parent->cid_count - 1];
 	parent->cid_count--;
+
 	if (child->file_or_dir == D_FILE)
 	{
 		filecount--;
 		size -= child->size;
+		update_parent (child, child->size  * -1);
 	}
 	else
 	{
