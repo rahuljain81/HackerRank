@@ -1,6 +1,4 @@
-
-#include <malloc.h>
-#define LIMIT 10000000
+#include <stdlib.h>
 #define MAX_CHILD 200
 #define MAX_NODES 10000
 #define D_DIR 1
@@ -10,8 +8,8 @@
 typedef struct node
 {
 	int id;
-	int pid;
-	int cid[MAX_CHILD];
+	struct node* pid;
+	struct node* cid[MAX_CHILD];
 	int cid_count;
 
 	int file_or_dir;
@@ -24,9 +22,7 @@ int count;
 int filecount;
 int size;
 
-//node list[MAX_NODES];
 node *list = NULL;
-int* hash = NULL;
 
 void init(void)
 {
@@ -34,8 +30,6 @@ void init(void)
 	size = 0;
 	filecount = 0;
 
-	if (hash == NULL)
-		hash = (int*)malloc(LIMIT * sizeof(int));
 	if (list == NULL)
 		list = (node*)malloc(MAX_NODES * sizeof(node));
 
@@ -43,41 +37,37 @@ void init(void)
 	list[count].cid_count = 0;
 	list[count].file_or_dir = D_DIR;
 	list[count].is_infected = 0;
-	list[count].pid = -1;
-
-	hash[10000] = 0;
+	list[count].pid = NULL;
 
 	count++;
 }
 
 int find(int id)
 {
-	//int i = 0;
+	int i = 0;
 
-	//while (list[i].id != id && i < count)
-	//	i++;
+	while (list[i].id != id && i < count)
+		i++;
 
-	//return i;
-
-	return hash[id];
+	return i;
 }
 
 int calculate(int id)
 {
-	node n = list[find(id)];
+	node* n = &list[find(id)];
 	int nodesize = 0;
 
-	if (n.file_or_dir == D_FILE)
-		nodesize = n.size;
+	if (n->file_or_dir == D_FILE)
+		nodesize = n->size;
 
-	for (int i = 0; i < n.cid_count; i++)
+	for (int i = 0; i < n->cid_count; i++)
 	{
-		node child = list[find(n.cid[i])];
+		node* child = n->cid[i];
 
-		if (child.file_or_dir == D_DIR && child.cid_count)
-			nodesize += calculate(child.id);
+		if (child->file_or_dir == D_DIR && child->cid_count)
+			nodesize += calculate(child->id);
 		else
-			nodesize += child.size;
+			nodesize += child->size;
 	}
 
 	return nodesize;
@@ -86,24 +76,20 @@ int calculate(int id)
 void dump(int id, int depth)
 {
 	return;//INTENTIONAL
-
 }
-
-
 
 int add(int id, int pid, int fileSize)
 {
 
-	//	printf (" ADD pid %d id %d size %d\n", pid, id, fileSize);
+	//printf (" ADD pid %d id %d size %d\n", pid, id, fileSize);
 	node* parent = &list[find(pid)];
 	node* child = &list[count++];
-	hash[id] = count - 1;
 	size += fileSize;
 
-	parent->cid[parent->cid_count++] = id;
+	parent->cid[parent->cid_count++] = child;
 
 	child->id = id;
-	child->pid = pid;
+	child->pid = parent;
 	child->size = fileSize;
 	child->orig_size = fileSize;
 	child->cid_count = 0;
@@ -125,12 +111,12 @@ int move(int id, int pid)
 
 	node* child = &list[find(id)];
 	node* new_parent = &list[find(pid)];
-	node* old_parent = &list[find(child->pid)];
+	node* old_parent = child->pid;
 
 	//remove from old parent list
 	for (i = 0; i < old_parent->cid_count; i++)
 	{
-		if (old_parent->cid[i] == id)
+		if (old_parent->cid[i]->id == id)
 			break;
 	}
 
@@ -139,16 +125,16 @@ int move(int id, int pid)
 	old_parent->cid_count--;
 
 	//Add in new parent list
-	new_parent->cid[new_parent->cid_count++] = id;
+	new_parent->cid[new_parent->cid_count++] = child;
 	new_parent = &list[find(pid)];
 
-
 	//update parent
-	child->pid = pid;
+	child->pid = new_parent;
 
 	dump(10000, 0);
 	return calculate(pid);
 }
+
 int infected;
 void rec_infect(int id)
 {
@@ -166,7 +152,7 @@ void rec_infect(int id)
 	{
 		for (int i = 0; i < n->cid_count; i++)
 		{
-			node* child = &list[find(n->cid[i])];
+			node* child = n->cid[i];
 
 			child->is_infected = 1;
 
@@ -211,7 +197,7 @@ void rec_recover(int id)
 	{
 		for (int i = 0; i < n->cid_count; i++)
 		{
-			node* child = &list[find(n->cid[i])];
+			node* child = n->cid[i];
 
 			child->is_infected = 0;
 
@@ -253,7 +239,7 @@ void rec_remove(int id)
 	{
 		for (int i = 0; i < n->cid_count; i++)
 		{
-			node* child = &list[find(n->cid[i])];
+			node* child = n->cid[i];
 
 			child->is_infected = 0;
 
@@ -274,19 +260,19 @@ void rec_remove(int id)
 }
 
 
-int remove(int id)
+int fremove(int id)
 {
 	//	printf (" Remove %d \n", id);
 	int i, ret;
 	node* child = &list[find(id)];
-	node* parent = &list[find(child->pid)];
+	node* parent = child->pid;
 
 	ret = calculate(id);
 
 	//remove from old parent list
 	for (i = 0; i < parent->cid_count; i++)
 	{
-		if (parent->cid[i] == id)
+		if (parent->cid[i]->id == id)
 			break;
 	}
 
